@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.aiphoto_album.dao.PhotoMapper">
+	<!-- <resultMap id="BaseResultMap" type="com.liao.entity.DImg">
+        <id column="did" property="id" jdbcType="INTEGER"/>
+        <result column="product_id" property="productId" jdbcType="INTEGER"/>
+        <result column="img" property="img" jdbcType="VARCHAR"/>
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP"/>
+    </resultMap> -->
+
+    <insert id="insertPhotoInfo" parameterType="com.example.aiphoto_album.model.Photo"  >
+		<selectKey resultType="int" order="AFTER" keyProperty="fileId">
+        	SELECT LAST_INSERT_ID()
+    	</selectKey>
+		INSERT INTO photo(fileId,fileName,imgUrl,userId,height,width,uploadTime)
+		VALUES
+			(null,#{fileName},#{imgUrl},#{userId},#{height},#{width},#{uploadTime});
+	</insert>
+
+	<insert id="insertClassifyInfo" parameterType="com.example.aiphoto_album.model.Category" useGeneratedKeys="true" keyProperty="classifyId" keyColumn="classifyId">
+		INSERT INTO category
+		VALUES
+			(null,#{fileId},#{group},#{item});
+	</insert>
+
+	<select id="getAlbumNum"  parameterType="map">
+		select count(*) from (select count(*) as num from category join photo where category.fileId = photo.fileId and photo.userId = #{userId} and 
+		category.group = #{group} group by photo.fileId) as tempTable;
+	</select>
+
+	<select id="getAllItems" parameterType="hashmap" resultType="java.lang.String">
+		select distinct item from  category join photo where category.fileId = photo.fileId and 
+		photo.userId = #{userId}  and category.group =  #{group};
+	</select>
+
+	<select id="getFirstPhoto" parameterType="hashmap" resultType="map">
+		select photo.fileId,photo.imgUrl from  category join photo where category.fileId = photo.fileId and 
+		photo.userId = #{userId}  and category.item =  #{item} limit 1;
+	</select>
+	
+	<select id="getPhotoInfo" parameterType="Long" resultType="map">
+		select fileName,imgUrl,height,width,uploadTime from photo where fileId = #{fileId};
+	</select>
+ 
+	<select id="getImgList" parameterType="hashmap" resultType="map">
+		select photo.fileId,fileName,imgUrl from photo join category where photo.fileId = category.fileId and userId = #{userId} and
+		item = #{item} limit #{curIndex},#{pageSize};
+	</select>
+
+	<select id="vagueSearch" parameterType="hashmap" resultType="map">
+		select photo.fileId,fileName,imgUrl from photo join category where photo.fileId = category.fileId and userId = #{userId} and
+		concat(IFNULL(fileName,''),IFNULL(item,''),IFNULL(uploadTime,'')) like '%${keyWord}%' limit #{curIndex},#{pageSize};
+	</select>
+
+	<select id="getSearchNum" parameterType="hashmap" resultType="int">
+		select count(*) as total from photo join category where photo.fileId = category.fileId and userId = #{userId} and
+		concat(IFNULL(fileName,''),IFNULL(item,''),IFNULL(uploadTime,'')) like '%${keyWord}%';
+	</select>
+
+	<delete id="deletePhotoInfo" parameterType="Long">
+		delete photo,category from photo LEFT JOIN category ON photo.fileId=category.fileId WHERE photo.fileId = #{fileId};
+	</delete>
+
+	<select id="getPageNum" parameterType="java.lang.String" resultType="int">
+		select count(*) as total from photo where userId = #{userId};
+	</select>
+
+	<select id="getAllImg" parameterType="hashmap" resultType="map">
+		select fileId,fileName,imgUrl from photo where userId = #{userId} order by uploadTime desc limit #{curIndex},#{pageSize};
+	</select>
+
+</mapper>

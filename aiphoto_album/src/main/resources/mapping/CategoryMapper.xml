@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.aiphoto_album.dao.CategoryMapper">
+
+	<select id="getAllItems" parameterType="hashmap" resultType="java.lang.String">
+		select distinct item from  category join photo where category.fileId = photo.fileId and 
+		photo.userId = #{userId}  and category.group =  #{group};
+	</select>
+	
+    <select id="getItemNum" parameterType="hashmap" resultType="java.lang.Integer">
+		select count(*) as num from  category join photo where category.fileId = photo.fileId and 
+		photo.userId = #{userId}  and category.item =  #{item};
+	</select>
+
+	<select id="getImgCategories" parameterType="Long" resultType="java.lang.String">
+		select item from category where fileId = #{fileId};
+	</select>
+</mapper>
